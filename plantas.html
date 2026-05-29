@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herbario</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0b0d0b;
+    --surface: #111410;
+    --surface2: #181c16;
+    --border: rgba(140,170,100,0.15);
+    --border-hover: rgba(140,170,100,0.35);
+    --green: #7aaa4a;
+    --green-dim: #4a7a28;
+    --green-glow: rgba(122,170,74,0.12);
+    --cream: #d4c9a8;
+    --cream-dim: #8c8470;
+    --text: #c8d4b0;
+    --text-dim: #697060;
+    --accent: #a8c870;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HOME ── */
+  #home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .home-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 60%, rgba(60,90,30,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 20% 80%, rgba(40,70,20,0.10) 0%, transparent 60%);
+  }
+
+  .wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  .tagline {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 4rem;
+    text-align: center;
+  }
+
+  .search-wrap {
+    width: 100%;
+    max-width: 540px;
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.1rem 3.5rem 1.1rem 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--cream);
+    outline: none;
+    letter-spacing: 0.08em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .search-input::placeholder {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .search-input:focus {
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 1px rgba(140,170,100,0.1), inset 0 0 30px rgba(60,90,30,0.08);
+  }
+
+  .search-icon {
+    position: absolute;
+    right: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    font-size: 1rem;
+  }
+
+  .suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    display: none;
+    z-index: 100;
+  }
+
+  .suggestions.show { display: block; }
+
+  .suggestion-item {
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover { background: var(--surface2); color: var(--accent); }
+
+  .sug-family {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-left: auto;
+    font-style: italic;
+  }
+
+  /* ── FICHA ── */
+  #ficha {
+    display: none;
+    min-height: 100vh;
+  }
+
+  .ficha-header {
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+  }
+
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .back-btn:hover { border-color: var(--border-hover); color: var(--accent); }
+
+  .ficha-title-block { flex: 1; }
+
+  .ficha-nombre-comun {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 5vw, 3.2rem);
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+  }
+
+  .ficha-nombre-cientifico {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--green);
+    letter-spacing: 0.08em;
+    margin-top: 0.2rem;
+  }
+
+  /* BODY */
+  .ficha-body {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  @media (max-width: 780px) {
+    .ficha-body { grid-template-columns: 1fr; }
+    .ficha-aside { border-left: none !important; border-top: 1px solid var(--border); }
+  }
+
+  .ficha-main { padding: 2.5rem; }
+
+  .ficha-aside {
+    border-left: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    background: var(--surface);
+  }
+
+  /* DESCRIPCION */
+  .ficha-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--cream-dim);
+    margin-bottom: 2.5rem;
+    border-left: 1px solid var(--green-dim);
+    padding-left: 1.5rem;
+    font-style: italic;
+  }
+
+  /* SECCIONES */
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section { margin-bottom: 2.5rem; }
+
+  /* GRID DATOS */
+  .datos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+
+  @media (max-width: 500px) {
+    .datos-grid { grid-template-columns: 1fr; }
+  }
+
+  .dato-item {
+    padding: 0.9rem 1.1rem;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .dato-item:nth-child(2n) { border-right: none; }
+  .dato-item:nth-last-child(-n+2) { border-bottom: none; }
+  .dato-item:hover { background: var(--green-glow); }
+
+  .dato-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+  }
+
+  .dato-value {
+    font-size: 0.82rem;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+  }
+
+  /* CUIDADOS */
+  .cuidado-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cuidado-row:last-child { border-bottom: none; }
+
+  .cuidado-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-size: 0.9rem;
+    border-radius: 1px;
+  }
+
+  .cuidado-info { flex: 1; }
+
+  .cuidado-titulo {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.25rem;
+  }
+
+  .cuidado-desc {
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.55;
+    letter-spacing: 0.02em;
+  }
+
+  /* NIVEL INDICADOR */
+  .nivel-bar {
+    display: flex;
+    gap: 4px;
+    margin-top: 0.4rem;
+  }
+
+  .nivel-dot {
+    width: 18px;
+    height: 4px;
+    border-radius: 1px;
+    background: var(--border);
+  }
+
+  .nivel-dot.on { background: var(--green); }
+
+  /* ASIDE: TAXONOMIA */
+  .tax-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+  }
+
+  .tax-item:last-child { border-bottom: none; }
+  .tax-key { color: var(--text-dim); }
+  .tax-val { color: var(--cream); font-style: italic; text-align: right; }
+
+  /* TAGS */
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; }
+
+  .tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 1px;
+  }
+
+  .tag.green { border-color: var(--green-dim); color: var(--green); }
+
+  /* CURIOSIDADES */
+  .curiosidad {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--cream-dim);
+    line-height: 1.7;
+    padding: 1rem 1.2rem;
+    background: var(--green-glow);
+    border-left: 2px solid var(--green-dim);
+    margin-bottom: 0.7rem;
+  }
+
+  /* FOTO PLACEHOLDER */
+  .foto-slot {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .foto-slot svg { opacity: 0.25; }
+
+  /* ANIM */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: fadeUp 0.5s ease both; }
+  .delay-1 { animation-delay: 0.08s; }
+  .delay-2 { animation-delay: 0.16s; }
+  .delay-3 { animation-delay: 0.24s; }
+</style>
+</head>
+<body>
+
+<!-- ═══════ HOME ═══════ -->
+<div id="home">
+  <div class="home-bg"></div>
+  <h1 class="wordmark animate-in">Herbario</h1>
+  <p class="tagline animate-in delay-1">Enciclopedia botánica</p>
+
+  <div class="search-wrap animate-in delay-2">
+    <input class="search-input" id="searchInput" type="text"
+           placeholder="Buscar planta..." autocomplete="off" spellcheck="false">
+    <span class="search-icon">↗</span>
+    <div class="suggestions" id="suggestions"></div>
+  </div>
+</div>
+
+<!-- ═══════ FICHA ═══════ -->
+<div id="ficha">
+  <div class="ficha-header">
+    <button class="back-btn" onclick="volverHome()">← Volver</button>
+    <div class="ficha-title-block">
+      <div class="ficha-nombre-comun" id="fichaComun"></div>
+      <div class="ficha-nombre-cientifico" id="fichaCientifico"></div>
+    </div>
+  </div>
+
+  <div class="ficha-body">
+    <div class="ficha-main" id="fichaMain"></div>
+    <aside class="ficha-aside" id="fichaAside"></aside>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  BASE DE DATOS DE PLANTAS
+// ══════════════════════════════════════════
+const plantas = [
+  {
+    id: "pothos-marble",
+    comun: "Pothos 'Marble Queen'",
+    cientifico: "Epipremnum aureum 'Marble Queen'",
+    familia: "Araceae",
+    imagen: "images/pothos-marble.png",
+    descripcion: "El Pothos Marble Queen es una de las variedades más elegantes del popular Epipremnum aureum. Sus hojas presentan un mármol de color blanco cremoso y verde intenso, formando patrones únicos en cada hoja. Es una planta trepadora o colgante de gran adaptabilidad, ideal para interiores.",
+    taxonomia: {
+      "Reino": "Plantae",
+      "División": "Magnoliophyta",
+      "Clase": "Liliopsida",
+      "Orden": "Alismatales",
+      "Familia": "Araceae",
+      "Género": "Epipremnum",
+      "Especie": "aureum"
+    },
+    datos: [
+      { label: "Origen", value: "Polinesia, Asia Tropical" },
+      { label: "Tipo", value: "Trepadora perenne" },
+      { label: "Tamaño", value: "2–10 m en exterior / 1–2 m interior" },
+      { label: "Hoja", value: "Cordada, variegada blanco-verde" },
+      { label: "Toxicidad", value: "Tóxica para mascotas y humanos" },
+      { label: "Floración", value: "Rara en interior" }
+    ],
+    cuidados: [
+      { icon: "☀", titulo: "Luz", desc: "Luz indirecta brillante. La poca luz reduce la variegación; el sol directo quema las hojas blancas.", nivel: 3 },
+      { icon: "💧", titulo: "Riego", desc: "Riego moderado; deja secar el sustrato entre riegos. En verano cada 7–10 días, en invierno cada 14–21 días.", nivel: 2 },
+      { icon: "🌡", titulo: "Temperatura", desc: "Óptima entre 18–30 °C. No tolera heladas ni temperaturas por debajo de 10 °C.", nivel: 2 },
+      { icon: "💨", titulo: "Humedad", desc: "Prefiere humedad ambiental >50%. Pulveriza ocasionalmente o usa bandeja con guijarros húmedos.", nivel: 2 },
+      { icon: "🌱", titulo: "Sustrato", desc: "Mezcla drenante: tierra universal + perlita (3:1). pH ideal 6.1–6.5.", nivel: 2 },
+      { icon: "🧪", titulo: "Fertilización", desc: "Abono líquido balanceado cada 3–4 semanas en primavera–verano. Ninguno en otoño–invierno.", nivel: 2 }
+    ],
+    curiosidades: [
+      "La variegación blanca es causada por la ausencia de cloroplastos; por ello crece más lento que las variedades verdes.",
+      "Es una de las plantas de interior más eficaces para filtrar formaldehído y benceno del aire, según estudios de la NASA."
+    ],
+    tags: ["Interior", "Colgante", "Trepadora", "Principiantes", "Purificadora", "Baja Toxicidad"]
+  },
+
+  {
+    id: "menta",
+    comun: "Menta (Menta negra o Peppermint)",
+    cientifico: "Mentha x piperita",
+    familia: "Lamiaceae",
+    imagen: "images/menta.png",
+    descripcion: "Hierba perenne de aroma intenso y refrescante, resultado del cruce natural entre la menta acuática y la hierbabuena. Es muy valorada por su alto contenido de mentol, tallos purpúreos y hojas dentadas.",
+    taxonomia: {
+      "Reino": "Plantae",
+      "División": "Magnoliophyta",
+      "Clase": "Magnoliopsida",
+      "Orden": "Lamiales",
+      "Familia": "Lamiaceae",
+      "Género": "Mentha",
+      "Especie": "Mentha x piperita"
+    },
+    datos: [
+      { label: "Origen", value: "Europa y Medio Oriente" },
+      { label: "Tipo", value: "Perenne / Herbácea" },
+      { label: "Tamaño", value: "30 a 90 cm de altura" },
+      { label: "Hoja", value: "Ovalada, dentada, verde oscuro con nervaduras púrpuras" },
+      { label: "Toxicidad", value: "Baja (segura para humanos; tóxica para perros y gatos en grandes cantidades por aceites esenciales)" },
+      { label: "Floración", value: "Verano (flores púrpuras o rosadas en espigas)" }
+    ],
+    cuidados: [
+      { icon: "☀", titulo: "Luz", desc: "Sol pleno o semisombra. En climas cálidos agradece la sombra parcial de tarde para evitar quemaduras.", nivel: 4 },
+      { icon: "💧", titulo: "Riego", desc: "Riego frecuente; mantener el suelo ligeramente húmedo pero sin encharcamiento. Crítico en verano.", nivel: 4 },
+      { icon: "🌡", titulo: "Temperatura", desc: "Rango amplio: de -5 °C a 35 °C. En invierno la parte aérea puede morir y rebrotar en primavera.", nivel: 3 },
+      { icon: "💨", titulo: "Humedad", desc: "Tolera ambientes con humedad media-alta. No le gustan los ambientes muy secos con calefacción.", nivel: 3 },
+      { icon: "🌱", titulo: "Sustrato", desc: "Tierra rica en materia orgánica, bien drenada. pH 6.0–7.0. Añadir compost mejora el sabor.", nivel: 2 },
+      { icon: "🧪", titulo: "Fertilización", desc: "Abono orgánico en primavera. Evitar exceso de nitrógeno que reduce el aceite esencial.", nivel: 2 }
+    ],
+    curiosidades: [
+      "El mentol, compuesto principal de la menta, activa los receptores de frío de la piel sin bajar la temperatura real.",
+      "La raíz puede invadir hasta 2 m de suelo en una temporada; se recomienda cultivarla en maceta o con barrera física."
+    ],
+    tags: ["Exterior", "Interior", "Comestible", "Medicinal", "Aromática", "Fácil cultivo"]
+  },
+
+  {
+    id: "hierbabuena",
+    comun: "Hierbabuena (Menta verde o Spearmint)",
+    cientifico: "Mentha spicata",
+    familia: "Lamiaceae",
+    imagen: "images/hierbabuena.png",
+    descripcion: "Especie pura del género Mentha, conocida por su aroma más suave y dulce debido a su alto contenido de carvona en lugar de mentol. Sus hojas son de un verde más claro, rugosas y carecen de pecíolo pronunciado.",
+    taxonomia: {
+      "Reino": "Plantae",
+      "División": "Magnoliophyta",
+      "Clase": "Magnoliopsida",
+      "Orden": "Lamiales",
+      "Familia": "Lamiaceae",
+      "Género": "Mentha",
+      "Especie": "Mentha spicata"
+    },
+    datos: [
+      { label: "Origen", value: "Región del Mediterráneo" },
+      { label: "Tipo", value: "Perenne / Herbácea" },
+      { label: "Tamaño", value: "30 a 100 cm de altura" },
+      { label: "Hoja", value: "Lancelolada, muy rugosa, margen aserrado y verde brillante" },
+      { label: "Toxicidad", value: "Baja (segura para consumo humano; evitar exceso en mascotas)" },
+      { label: "Floración", value: "Verano (flores blancas o rosa pálido en espigas delgadas y alargadas)" }
+    ],
+    cuidados: [
+      { icon: "☀", titulo: "Luz", desc: "Semisombra o sol filtrado. Tolera el sol directo si cuenta con humedad constante en las raíces.", nivel: 4 },
+      { icon: "💧", titulo: "Riego", desc: "Abundante y regular. El sustrato nunca debe secarse por completo, aunque requiere buen drenaje.", nivel: 4 },
+      { icon: "🌡", titulo: "Temperatura", desc: "Muy resistente. Soporta heladas moderadas. Su temperatura óptima está entre los 15 °C y 25 °C.", nivel: 3 },
+      { icon: "💨", titulo: "Humedad", desc: "Prefiere climas y ambientes húmedos. Agradece pulverizaciones foliares si el ambiente es muy seco.", nivel: 4 },
+      { icon: "🌱", titulo: "Sustrato", desc: "Suelos arcillosos o francos, muy ricos en nutrientes y con gran capacidad de retención de humedad.", nivel: 2 },
+      { icon: "🧪", titulo: "Fertilización", desc: "Agradece la incorporación de humus de lombriz o compost cada dos meses durante la época de crecimiento.", nivel: 2 }
+    ],
+    curiosidades: [
+      "Su nombre 'spicata' proviene del latín y significa 'en forma de espiga', haciendo referencia a la silueta de su inflorescencia.",
+      "A diferencia de la menta piperita, la hierbabuena casi no posee mentol, por lo que su sabor es gastronómicamente preferido para platos salados y coctelería tradicional."
+    ],
+    tags: ["Exterior", "Interior", "Comestible", "Medicinal", "Aromática", "Fácil cultivo"]
+  },
+
+  {
+    id: "romero",
+    comun: "Romero",
+    cientifico: "Salvia rosmarinus",
+    familia: "Lamiaceae",
+    imagen: "images/romero.png",
+    descripcion: "El romero es un arbusto mediterráneo de hojas aciculares persistentes y flores pequeñas azul-violáceas. Aromático, resistente a la sequía y de múltiples usos culinarios, medicinales y ornamentales. Una de las plantas más veneradas de la historia.",
+    taxonomia: {
+      "Reino": "Plantae",
+      "División": "Magnoliophyta",
+      "Clase": "Magnoliopsida",
+      "Orden": "Lamiales",
+      "Familia": "Lamiaceae",
+      "Género": "Salvia",
+      "Especie": "rosmarinus"
+    },
+    datos: [
+      { label: "Origen", value: "Cuenca mediterránea" },
+      { label: "Tipo", value: "Arbusto perenne" },
+      { label: "Tamaño", value: "0.5–2 m de altura" },
+      { label: "Hoja", value: "Acicular, verde oscuro/blanco envés" },
+      { label: "Toxicidad", value: "No tóxico (comestible)" },
+      { label: "Floración", value: "Invierno–primavera (y esporádica)" }
+    ],
+    cuidados: [
+      { icon: "☀", titulo: "Luz", desc: "Sol directo mínimo 6 horas al día. En interior colócalo en la ventana más soleada.", nivel: 5 },
+      { icon: "💧", titulo: "Riego", desc: "Escaso; deja secar completamente entre riegos. El exceso de agua es su principal causa de muerte.", nivel: 1 },
+      { icon: "🌡", titulo: "Temperatura", desc: "Resiste hasta -10 °C si el suelo drena bien. Tolera calor extremo de zonas mediterráneas.", nivel: 4 },
+      { icon: "💨", titulo: "Humedad", desc: "Prefiere ambientes secos. Alta humedad favorece hongos en las ramas inferiores.", nivel: 1 },
+      { icon: "🌱", titulo: "Sustrato", desc: "Suelo pobre, calcáreo y muy drenante. Añadir grava o perlita en proporción 1:1 con tierra.", nivel: 1 },
+      { icon: "🧪", titulo: "Fertilización", desc: "Poco o nulo. Un exceso de nutrientes produce hojas con menos aroma y sabor.", nivel: 1 }
+    ],
+    curiosidades: [
+      "Rosmarinus significa 'rocío del mar' en latín, en referencia a su hábitat natural en acantilados costeros.",
+      "Estudios recientes avalan el ácido carnósico del romero como compuesto neuroprotector frente al estrés oxidativo."
+    ],
+    tags: ["Exterior", "Interior", "Comestible", "Medicinal", "Xerófita", "Aromática"]
+  }
+];
+
+// ══════════════════════════════════════════
+//  BÚSQUEDA
+// ══════════════════════════════════════════
+const input = document.getElementById('searchInput');
+const sugEl = document.getElementById('suggestions');
+
+function normalizar(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+input.addEventListener('input', () => {
+  const q = normalizar(input.value.trim());
+  if (!q) { sugEl.classList.remove('show'); return; }
+
+  const matches = plantas.filter(p =>
+    normalizar(p.comun).includes(q) ||
+    normalizar(p.cientifico).includes(q) ||
+    normalizar(p.familia).includes(q)
+  );
+
+  if (!matches.length) { sugEl.classList.remove('show'); return; }
+
+  sugEl.innerHTML = matches.map(p => `
+    <div class="suggestion-item" onclick="mostrarFicha('${p.id}')">
+      <span>${p.comun}</span>
+      <span class="sug-family">${p.cientifico}</span>
+    </div>
+  `).join('');
+  sugEl.classList.add('show');
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const q = normalizar(input.value.trim());
+    const match = plantas.find(p =>
+      normalizar(p.comun).includes(q) ||
+      normalizar(p.cientifico).includes(q)
+    );
+    if (match) mostrarFicha(match.id);
+  }
+  if (e.key === 'Escape') sugEl.classList.remove('show');
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) sugEl.classList.remove('show');
+});
+
+// ══════════════════════════════════════════
+//  RENDERIZAR FICHA
+// ══════════════════════════════════════════
+function mostrarFicha(id) {
+  const p = plantas.find(x => x.id === id);
+  if (!p) return;
+
+  sugEl.classList.remove('show');
+  document.getElementById('fichaComun').textContent = p.comun;
+  document.getElementById('fichaCientifico').textContent = p.cientifico;
+
+  // MAIN
+  const main = document.getElementById('fichaMain');
+  main.innerHTML = `
+    <p class="ficha-desc animate-in">${p.descripcion}</p>
+
+    <div class="section animate-in delay-1">
+      <div class="section-label">Datos generales</div>
+      <div class="datos-grid">
+        ${p.datos.map(d => `
+          <div class="dato-item">
+            <div class="dato-label">${d.label}</div>
+            <div class="dato-value">${d.value}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="section animate-in delay-2">
+      <div class="section-label">Cuidados</div>
+      ${p.cuidados.map(c => `
+        <div class="cuidado-row">
+          <div class="cuidado-icon">${c.icon}</div>
+          <div class="cuidado-info">
+            <div class="cuidado-titulo">${c.titulo}</div>
+            <div class="cuidado-desc">${c.desc}</div>
+            <div class="nivel-bar">
+              ${[1,2,3,4,5].map(n => `<div class="nivel-dot${n <= c.nivel ? ' on' : ''}"></div>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="section animate-in delay-3">
+      <div class="section-label">Curiosidades</div>
+      ${p.curiosidades.map(c => `<div class="curiosidad">${c}</div>`).join('')}
+    </div>
+  `;
+
+  // ASIDE
+  const aside = document.getElementById('fichaAside');
+  aside.innerHTML = `
+    <div class="foto-slot animate-in">
+      <img src="${p.imagen}" alt="${p.comun}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1px;">
+    </div>
+
+    <div class="section animate-in delay-1">
+      <div class="section-label">Taxonomía</div>
+      ${Object.entries(p.taxonomia).map(([k,v]) => `
+        <div class="tax-item">
+          <span class="tax-key">${k}</span>
+          <span class="tax-val">${v}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="section animate-in delay-2">
+      <div class="section-label">Etiquetas</div>
+      <div class="tags">
+        ${p.tags.map((t,i) => `<span class="tag${i<3?' green':''}">${t}</span>`).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('ficha').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  input.value = '';
+}
+
+function volverHome() {
+  document.getElementById('ficha').style.display = 'none';
+  document.getElementById('home').style.display = 'flex';
+  setTimeout(() => input.focus(), 100);
+}
+</script>
+</body>
+</html>
