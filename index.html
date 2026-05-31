@@ -400,6 +400,40 @@
     margin-bottom: 0.7rem;
   }
 
+  .toxic-notice {
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid #d46a6a;
+    background: rgba(214,106,106,0.12);
+    color: #ffd8d8;
+    border-radius: 1px;
+    letter-spacing: 0.03em;
+  }
+
+  .toxic-notice strong {
+    color: #ffd3d3;
+  }
+
+  .toxic-list {
+    margin: 0.8rem 0 0;
+    padding-left: 1rem;
+    list-style: none;
+  }
+
+  .toxic-list li {
+    position: relative;
+    padding-left: 1.1rem;
+    margin-bottom: 0.35rem;
+    color: var(--cream);
+  }
+
+  .toxic-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
   /* FOTO PLACEHOLDER */
   .foto-slot {
     width: 100%;
@@ -476,6 +510,37 @@ const plantas = [
     comun: "Pothos 'Marble Queen'",
     cientifico: "Epipremnum aureum 'Marble Queen'",
     familia: "Araceae",
+    toxica: true,
+    precauciones: [
+      "Ubicación elevada: Coloca la planta en estantes altos, repisas o en macetas colgantes donde quede totalmente fuera del alcance de niños pequeños, perros y gatos.",
+      "Cuidado con las guías largas: Esta planta es trepadora o colgante. A medida que crezca, asegúrate de recortar las guías largas o enredarlas en un tutor alto para que las hojas bajas no queden al nivel del suelo.",
+      "Uso de guantes al podar: Siempre que vayas a podar, trasplantar o propagar la planta, usa guantes de jardinería para evitar que la savia entre en contacto con tu piel.",
+      "Lavado de manos: Lávate muy bien las manos con agua y jabón después de manipularla.",
+      "Limpieza de hojas caídas: Recoge de inmediato las hojas secas o amarillas que caigan al suelo, ya que siguen conteniendo los cristales de oxalato y pueden llamar la atención de las mascotas."
+    ],
+    sintomas: {
+      mascotas: [
+        "Irritación e hinchazón intensa en la boca, lengua y labios.",
+        "Babeo excesivo (sialorrea).",
+        "Dificultad para tragar (disfagia).",
+        "Vómitos.",
+        "En casos graves (muy raros, salvo ingesta masiva), inflamación de las vías respiratorias que dificulta la respiración."
+      ],
+      humanos: [
+        "Sensación de ardor o quemazón inmediata en la boca.",
+        "Hinchazón de los labios y la lengua.",
+        "Náuseas y dificultad para hablar.",
+        "Contacto con la piel: La savia de la planta puede causar dermatitis o irritación cutánea en personas de piel sensible.",
+        "Contacto con los ojos: Si te frotas los ojos con savia en las manos, puede causar conjuntivitis y dolor severo."
+      ]
+    },
+    queHacer: [
+      "Nota importante: Esta información es meramente orientativa y no sustituye la consulta médica o veterinaria profesional.",
+      "1. Retirar restos: Retira suavemente cualquier pedazo de planta que quede en la boca.",
+      "2. Lavar con agua: Enjuaga la boca (o la zona de la piel afectada) con abundante agua fresca.",
+      "3. Diluir: Ofrecer un poco de agua o leche (en humanos) puede ayudar a aliviar la sensación de ardor en la boca.",
+      "4. Monitorear: Si notas que la hinchazón aumenta, hay dificultad para respirar, babeo incontrolable o vómitos continuos, busca atención médica o veterinaria de urgencia de inmediato."
+    ],
     imagen: "images/pothos-marble.png",
     descripcion: "El Pothos Marble Queen es una de las variedades más elegantes del popular Epipremnum aureum. Sus hojas presentan un mármol de color blanco cremoso y verde intenso, formando patrones únicos en cada hoja. Es una planta trepadora o colgante de gran adaptabilidad, ideal para interiores.",
     taxonomia: {
@@ -515,6 +580,11 @@ const plantas = [
     comun: "Menta (Menta negra o Peppermint)",
     cientifico: "Mentha x piperita",
     familia: "Lamiaceae",
+    toxica: false,
+    precauciones: [
+      "Ideal para consumo humano en cantidades normales.",
+      "Evitar contacto prolongado con mascotas sensibles a aceites esenciales."
+    ],
     imagen: "images/menta.png",
     descripcion: "Hierba perenne de aroma intenso y refrescante, resultado del cruce natural entre la menta acuática y la hierbabuena. Es muy valorada por su alto contenido de mentol, tallos purpúreos y hojas dentadas.",
     taxonomia: {
@@ -554,6 +624,11 @@ const plantas = [
     comun: "Hierbabuena (Menta verde o Spearmint)",
     cientifico: "Mentha spicata",
     familia: "Lamiaceae",
+    toxica: false,
+    precauciones: [
+      "Apta para uso culinario en preparación de infusiones y comidas.",
+      "Mantener alejada de mascotas si se ingiere en grandes cantidades."
+    ],
     imagen: "images/hierbabuena.png",
     descripcion: "Especie pura del género Mentha, conocida por su aroma más suave y dulce debido a su alto contenido de carvona en lugar de mentol. Sus hojas son de un verde más claro, rugosas y carecen de pecíolo pronunciado.",
     taxonomia: {
@@ -593,6 +668,11 @@ const plantas = [
     comun: "Romero",
     cientifico: "Salvia rosmarinus",
     familia: "Lamiaceae",
+    toxica: false,
+    precauciones: [
+      "Seguro para uso culinario y ornamental.",
+      "Conservar en un lugar ventilado y evitar exceso de humedad."
+    ],
     imagen: "images/romero.png",
     descripcion: "El romero es un arbusto mediterráneo de hojas aciculares persistentes y flores pequeñas azul-violáceas. Aromático, resistente a la sequía y de múltiples usos culinarios, medicinales y ornamentales. Una de las plantas más veneradas de la historia.",
     taxonomia: {
@@ -704,6 +784,8 @@ function mostrarFicha(id) {
       </div>
     </div>
 
+    ${renderToxicidad(p)}
+
     <div class="section animate-in delay-2">
       <div class="section-label">Cuidados</div>
       ${p.cuidados.map(c => `
@@ -755,6 +837,50 @@ function mostrarFicha(id) {
   document.getElementById('ficha').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
   input.value = '';
+}
+
+function renderToxicidad(plant) {
+  if (!plant.toxica) return '';
+
+  const medidas = plant.precauciones || [];
+  const sintomas = plant.sintomas || [];
+  const acciones = plant.queHacer || [];
+
+  const sintomasHtml = typeof sintomas === 'object' && !Array.isArray(sintomas)
+    ? `
+        <div style="margin-top: 1rem;">
+          <strong>Síntomas:</strong>
+          ${Object.entries(sintomas).map(([grupo, items]) => `
+            <div style="margin-top: 0.75rem;">
+              <strong>${grupo === 'mascotas' ? 'Mascotas (perros y gatos)' : 'Humanos' }:</strong>
+              <ul class="toxic-list">${items.map(item => `<li>${item}</li>`).join('')}</ul>
+            </div>
+          `).join('')}
+        </div>
+      `
+    : sintomas.length ? `
+        <div style="margin-top: 1rem;">
+          <strong>Síntomas:</strong>
+          <ul class="toxic-list">${sintomas.map(item => `<li>${item}</li>`).join('')}</ul>
+        </div>
+      ` : '';
+
+  return `
+    <div class="section animate-in delay-2">
+      <div class="section-label">Precauciones</div>
+      <div class="toxic-notice">
+        <strong>¡Atención!</strong> Esta planta es tóxica. Sigue estas medidas de precaución para reducir riesgos.
+        ${medidas.length ? `<ul class="toxic-list">${medidas.map(item => `<li>${item}</li>`).join('')}</ul>` : ''}
+        ${sintomasHtml}
+        ${acciones.length ? `
+          <div style="margin-top: 1rem;">
+            <strong>Qué hacer:</strong>
+            <ul class="toxic-list">${acciones.map(item => `<li>${item}</li>`).join('')}</ul>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
 }
 
 function volverHome() {
